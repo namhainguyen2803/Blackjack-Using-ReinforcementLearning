@@ -10,8 +10,8 @@ import json
 f = open('policy.json')
 data = json.load(f)
 f.close()
-
 def policy(state, list_policy = data):
+    global cntt
     score = state[0]
     if str(state) in list_policy:
         return list_policy[str(state)]
@@ -137,12 +137,18 @@ def gamePlay():
             print(f"Dealer's deck: {dealer_card}, dealer's score: {dealer_final_score}")
             return check_win(player_final_score, dealer_final_score)
         
+cnt = 0
+NUM_GAMES = 1000
+for i in range(NUM_GAMES):
+    result = gamePlay()
+    if result == True:
+        print("AI wins")
+        cnt += 1
+    elif result == False:
+        print("Dealer wins")
+    else:
+        print("Draw")
 
-result = gamePlay()
-
-if result == True:
-    print("AI wins")
-elif result == False:
-    print("Dealer wins")
-else:
-    print("Draw")
+print(cnt)
+print(f"Winning percentage: {round(cnt/NUM_GAMES, 4) * 100}%")
+# One should note that the winning percentage of blackjack for player should around 42-43%
