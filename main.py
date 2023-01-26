@@ -10,8 +10,12 @@ import json
 f = open('policy.json')
 data = json.load(f)
 f.close()
+
+f_2 = open('policy_2.json')
+data_2 = json.load(f_2)
+f_2.close()
+
 def policy(state, list_policy = data):
-    global cntt
     score = state[0]
     if str(state) in list_policy:
         return list_policy[str(state)]
@@ -24,25 +28,42 @@ def policy(state, list_policy = data):
         else:
             return 0
 
-def update_state(player_state, player_card, action):
+def update_state(player_state, player_card, list_policy_2 = data_2):
     player_score = player_state[0]
     show_card = player_state[1]
     usable_ace = player_state[2]
+    
     new_player_score = player_score
     new_usable_ace = usable_ace
-    if action == 1:
-        new_usable_ace = False
-        new_card = give_card()
-        player_card.append(new_card)
-        if new_card == 1:
-            if player_score <= 11:
-                new_usable_ace = True
-                new_player_score += 10
-            else:
-                new_usable_ace = False
+    new_card = give_card()
+    player_card.append(new_card)
+    num_aces = player_card.count(1)
+    if num_aces == 0:
+        new_player_score += new_card
+        return (new_player_score, show_card, new_usable_ace), player_card
+    else:
+        sum_with_11 = sum(player_card) + 10
+        state_with_11 = (sum_with_11, show_card, True)
+        sum_without_11 = sum(player_card)
+        state_without_11 = (sum_without_11, show_card, False)
+        if sum_with_11 > 21:
+            return state_without_11, player_card
+        elif sum_with_11 == 21:
+            return state_with_11, player_card
+        elif sum_without_11 == 21:
+            return state_without_11, player_card
         else:
-            new_player_score = player_score + new_card
-    return (new_player_score, show_card, new_usable_ace), player_card
+            if str(state_without_11) in list_policy_2 and str(state_with_11) in list_policy_2:
+                if list_policy_2[str(state_without_11)] > list_policy_2[str(state_with_11)]:
+                    return state_without_11, player_card
+                else:
+                    return state_with_11, player_card
+            elif str(state_without_11) in list_policy_2 and str(state_with_11)  not in list_policy_2:
+                return state_without_11, player_card
+            
+            elif str(state_without_11) not in list_policy_2 and str(state_with_11) in list_policy_2:
+                return state_with_11, player_card
+
 
 def check_win(player_score, dealer_score):
     if player_score == 21:
@@ -65,6 +86,7 @@ def check_win(player_score, dealer_score):
 def give_card():
     deck = list(range(1,11)) + [10,10,10]
     return np.random.choice(deck)
+
 
 def dealer_turn(dealer_card):
     dealer_score = sum(dealer_card)
@@ -116,7 +138,7 @@ def gamePlay():
         # Player's turn:
         while policy(player_state) == 1:
             player_action = policy(player_state)
-            player_new_state, player_new_card = update_state(player_state, player_card, player_action)
+            player_new_state, player_new_card = update_state(player_state, player_card)
             player_card = player_new_card
             player_state = player_new_state
         player_final_score = player_state[0]
@@ -150,5 +172,5 @@ for i in range(NUM_GAMES):
         print("Draw")
 
 print(cnt)
-print(f"Winning percentage: {round(cnt/NUM_GAMES, 4) * 100}%")
+print(f"Winning percentage: {round(cnt*100/NUM_GAMES, 4)}%")
 # One should note that the winning percentage of blackjack for player should around 42-43%

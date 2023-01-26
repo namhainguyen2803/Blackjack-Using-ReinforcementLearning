@@ -18,7 +18,7 @@ Terminology:
 """
 
 # hyper params:
-NUM_EPISODES = 1000000
+NUM_EPISODES = 500000
 NUM_STATES = 32 * 11 * 2
 NUM_ACTIONS = 2
 EPSILON = 0.9
@@ -69,7 +69,7 @@ def generate_episodes(Q_value, epsilon):
 def Monte_Carlo_Every_visit(num_actions, num_episodes, epsilon, epsilon_min, alpha, gamma):
     Q_value = defaultdict(lambda: np.zeros(num_actions))
     policy = dict()
-
+    policy_2 = dict()
     for episode in range(num_episodes):
         epsilon = max(epsilon_min, epsilon * 0.8)
         
@@ -85,14 +85,20 @@ def Monte_Carlo_Every_visit(num_actions, num_episodes, epsilon, epsilon_min, alp
 
     for state, Q_value_per_state in Q_value.items():
         policy.update([(str(state), int(np.argmax(Q_value_per_state)))])
+        policy_2.update([(str(state), float(max(Q_value_per_state)))])
     
-    return Q_value, policy
+    return Q_value, policy, policy_2
 
 if __name__ == "__main__":
-    Q, P= Monte_Carlo_Every_visit(NUM_ACTIONS, NUM_EPISODES, EPSILON, MIN_EPSILON, ALPHA, GAMMA)
+    Q, P, P_2= Monte_Carlo_Every_visit(NUM_ACTIONS, NUM_EPISODES, EPSILON, MIN_EPSILON, ALPHA, GAMMA)
     print(P)
     print(len(P))
-    json = json.dumps(P)
+    json1 = json.dumps(P)
     f = open("policy.json","w")
-    f.write(json)
+    f.write(json1)
     f.close()
+    
+    json2 = json.dumps(P_2)
+    f2 = open("policy_2.json","w")
+    f2.write(json2)
+    f2.close()
